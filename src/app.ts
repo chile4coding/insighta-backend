@@ -1,4 +1,3 @@
-
 import express, { Request, Response, NextFunction } from "express";
 import profileRoutes from "./routes/profiles";
 import authRoutes from "./routes/auth";
@@ -36,13 +35,13 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false, //will make this secure once you buy a domain process.env.NODE_ENV === "production",
       sameSite: "lax" as const,
       maxAge: 5 * 60 * 1000, // 5 minutes - matches OAuth flow timeout
     },
     name: "insighta.sid",
     rolling: false,
-  })
+  }),
 );
 
 app.use(express.json());
@@ -53,11 +52,11 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   res.setHeader("Access-Control-Allow-Origin", process.env.FRONTEND_URL || "*");
   res.setHeader(
     "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, DELETE, OPTIONS"
+    "GET, POST, PUT, DELETE, DELETE, OPTIONS",
   );
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, X-API-Version, X-CSRF-Token"
+    "Content-Type, Authorization, X-API-Version, X-CSRF-Token",
   );
   res.setHeader("Access-Control-Allow-Credentials", "true");
   if (req.method === "OPTIONS") return res.sendStatus(204);
