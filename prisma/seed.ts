@@ -1,8 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import * as fs from "fs";
 import * as path from "path";
-import bcrypt from "bcrypt";
-import { TokenService } from "../src/services/token";
 
 const prisma = new PrismaClient();
 
@@ -19,39 +17,6 @@ interface ProfileData {
 
 async function seed() {
   console.log("Starting seed...");
-
-  // Create default users
-  console.log("Creating default users...");
-  const adminUser = await prisma.user.upsert({
-    where: { githubId: "1" },
-    update: {},
-    create: {
-      githubId: "1",
-      username: "admin",
-      email: "admin@insighta.com",
-      avatarUrl: "https://github.com/admin.png",
-      role: "admin",
-      isActive: true,
-      lastLoginAt: new Date(),
-    },
-  });
-
-  const analystUser = await prisma.user.upsert({
-    where: { githubId: "2" },
-    update: {},
-    create: {
-      githubId: "2",
-      username: "analyst",
-      email: "analyst@insighta.com",
-      avatarUrl: "https://github.com/analyst.png",
-      role: "analyst",
-      isActive: true,
-      lastLoginAt: new Date(),
-    },
-  });
-
-  console.log(`Created admin user: ${adminUser.username} (role: ${adminUser.role})`);
-  console.log(`Created analyst user: ${analystUser.username} (role: ${analystUser.role})`);
 
   // Seed profiles
   const seedFilePath = path.join(__dirname, "seed_profiles.json");
@@ -76,7 +41,6 @@ async function seed() {
           countryId: profile.country_id.toUpperCase(),
           countryName: profile.country_name,
           countryProbability: profile.country_probability,
-          userId: adminUser.id,
         },
         create: {
           name: profile.name.toLowerCase().trim(),
@@ -87,7 +51,6 @@ async function seed() {
           countryId: profile.country_id.toUpperCase(),
           countryName: profile.country_name,
           countryProbability: profile.country_probability,
-          userId: adminUser.id,
         },
       });
       successCount++;
