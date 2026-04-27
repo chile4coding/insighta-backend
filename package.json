@@ -4,14 +4,14 @@
   "description": "Insighta Labs+ Backend - Secure Profile Intelligence Service",
   "main": "dist/server.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node -e \"require('fs').copyFileSync('src/seed_profiles.json','dist/seed_profiles.json')\"",
     "start": "node dist/server.js",
     "dev": "nodemon",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio dev",
     "prisma:reset": "prisma migrate reset --force",
-    "seed": "node seed.js",
+    "seed": "node dist/seed.js",
     "test": "jest",
     "lint": "eslint src/**/*.ts",
     "typecheck": "tsc --noEmit"

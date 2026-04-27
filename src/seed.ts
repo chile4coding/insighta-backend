@@ -1,15 +1,26 @@
-const { PrismaClient } = require("@prisma/client");
-const fs = require("fs");
-const path = require("path");
+import { PrismaClient } from "@prisma/client";
+import * as fs from "fs";
+import * as path from "path";
 
 const prisma = new PrismaClient();
+
+interface ProfileData {
+  name: string;
+  gender: string;
+  gender_probability: number;
+  age: number;
+  age_group: string;
+  country_id: string;
+  country_name: string;
+  country_probability: number;
+}
 
 async function seed() {
   console.log("Starting seed...");
 
   const seedFilePath = path.join(__dirname, "seed_profiles.json");
   const seedData = JSON.parse(fs.readFileSync(seedFilePath, "utf-8"));
-  const profiles = seedData.profiles;
+  const profiles: ProfileData[] = seedData.profiles;
 
   console.log(`Found ${profiles.length} profiles to seed.`);
 
@@ -60,8 +71,6 @@ async function seed() {
   );
 
   const totalProfiles = await prisma.profile.count();
-  const totalUsers = await prisma.user.count();
-  console.log(`Total users in database: ${totalUsers}`);
   console.log(`Total profiles in database: ${totalProfiles}`);
 }
 
