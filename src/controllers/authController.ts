@@ -217,14 +217,14 @@ export async function githubOAuthCallback(req: Request, res: Response) {
     // ── WEB FLOW: set cookies (existing behavior) ──
     res.cookie("access_token", tokenPair.accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // process.env.NODE_ENV === "production",
       sameSite: "strict",
       maxAge: 3 * 60 * 1000,
     });
 
     res.cookie("refresh_token", tokenPair.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // process.env.NODE_ENV === "production",
       sameSite: "strict",
       maxAge: 5 * 60 * 1000,
     });
@@ -310,14 +310,14 @@ export async function refreshToken(req: Request, res: Response) {
       // Set new HTTP-only cookies
       res.cookie("access_token", newTokenPair.accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: false, // process.env.NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 3 * 60 * 1000, // 3 minutes
       });
 
       res.cookie("refresh_token", newTokenPair.refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: false, // process.env.NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 5 * 60 * 1000, // 5 minutes
       });
