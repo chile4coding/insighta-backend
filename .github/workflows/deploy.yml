@@ -77,22 +77,20 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
             cd ${{ secrets.SERVER_PATH }}
-            cat > .env << EOF
-DATABASE_URL=${{ secrets.DATABASE_URL }}
-PORT=${{ secrets.PORT }}
-JWT_SECRET=${{ secrets.JWT_SECRET }}
-ACCESS_TOKEN_EXPIRES=${{ secrets.ACCESS_TOKEN_EXPIRES }}
-REFRESH_TOKEN_EXPIRES=${{ secrets.REFRESH_TOKEN_EXPIRES }}
-GITHUB_CLIENT_ID=${{ secrets.GITHUB_CLIENT_ID }}
-GITHUB_CLIENT_SECRET=${{ secrets.GITHUB_CLIENT_SECRET }}
-GITHUB_CALLBACK_URL=${{ secrets.GITHUB_CALLBACK_URL }}
-FRONTEND_URL=${{ secrets.FRONTEND_URL }}
-RATE_LIMIT_WINDOW=${{ secrets.RATE_LIMIT_WINDOW }}
-AUTH_RATE_LIMIT=${{ secrets.AUTH_RATE_LIMIT }}
-API_RATE_LIMIT=${{ secrets.API_RATE_LIMIT }}
-SESSION_SECRET=${{ secrets.SESSION_SECRET }}
-NODE_ENV=production
-EOF
+            echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
+            echo "PORT=${{ secrets.PORT }}" >> .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            echo "ACCESS_TOKEN_EXPIRES=${{ secrets.ACCESS_TOKEN_EXPIRES }}" >> .env
+            echo "REFRESH_TOKEN_EXPIRES=${{ secrets.REFRESH_TOKEN_EXPIRES }}" >> .env
+            echo "GITHUB_CLIENT_ID=${{ secrets.GITHUB_CLIENT_ID }}" >> .env
+            echo "GITHUB_CLIENT_SECRET=${{ secrets.GITHUB_CLIENT_SECRET }}" >> .env
+            echo "GITHUB_CALLBACK_URL=${{ secrets.GITHUB_CALLBACK_URL }}" >> .env
+            echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> .env
+            echo "RATE_LIMIT_WINDOW=${{ secrets.RATE_LIMIT_WINDOW }}" >> .env
+            echo "AUTH_RATE_LIMIT=${{ secrets.AUTH_RATE_LIMIT }}" >> .env
+            echo "API_RATE_LIMIT=${{ secrets.API_RATE_LIMIT }}" >> .env
+            echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
+            echo "NODE_ENV=production" >> .env
 
       - name: Install dependencies on server
         timeout-minutes: 10
