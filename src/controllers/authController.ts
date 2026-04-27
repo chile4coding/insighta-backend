@@ -89,6 +89,8 @@ export async function githubOAuthCallback(req: Request, res: Response) {
 
     const storedPkceData = req.session.pkceData;
 
+    console.log("this is the stored data  === ", storedPkceData);
+
     if (!storedPkceData || storedPkceData.state !== state) {
       return res.status(400).json({
         status: "error",
