@@ -35,6 +35,7 @@ The backend service enriches names with demographic data (gender, age, country) 
 The system implements OAuth 2.0 with PKCE (Proof Key for Code Exchange) for secure authentication:
 
 **CLI Flow:**
+
 1. User runs `insighta login`
 2. CLI generates PKCE code_verifier and code_challenge
 3. CLI starts local callback server (port 3000)
@@ -44,6 +45,7 @@ The system implements OAuth 2.0 with PKCE (Proof Key for Code Exchange) for secu
 7. Tokens stored securely in `~/.insighta/credentials.json`
 
 **Web Flow:**
+
 1. User clicks "Continue with GitHub"
 2. Browser redirects to GitHub OAuth
 3. GitHub redirects back with authorization code
@@ -61,9 +63,9 @@ The system implements OAuth 2.0 with PKCE (Proof Key for Code Exchange) for secu
 
 ```typescript
 {
-  userId: string;    // User's UUID
-  role: string;      // "admin" | "analyst"
-  type: "access" | "refresh"
+  userId: string; // User's UUID
+  role: string; // "admin" | "analyst"
+  type: "access" | "refresh";
 }
 ```
 
@@ -79,6 +81,7 @@ The system implements OAuth 2.0 with PKCE (Proof Key for Code Exchange) for secu
 ## Database Schema
 
 ### User Model
+
 ```prisma
 model User {
   id             String   @id @default(uuid(7))
@@ -96,6 +99,7 @@ model User {
 ```
 
 ### Session Model
+
 ```prisma
 model Session {
   id           String   @id @default(uuid(7))
@@ -108,6 +112,7 @@ model Session {
 ```
 
 ### Profile Model
+
 ```prisma
 model Profile {
   id                 String   @id @default(uuid(7))
@@ -128,6 +133,7 @@ model Profile {
 ## Role-Based Access Control (RBAC)
 
 ### Roles
+
 - **Admin**: Full access - create, read, update, delete profiles
 - **Analyst**: Read-only - can only view and search profiles
 
@@ -135,29 +141,33 @@ model Profile {
 
 All `/api/*` endpoints require authentication and enforce role permissions:
 
-| Endpoint | Method | Required Role |
-|----------|--------|---------------|
-| `/api/profiles` | POST | admin |
-| `/api/profiles/:id` | DELETE | admin |
-| `/api/profiles` | GET | analyst+ |
-| `/api/profiles/search` | GET | analyst+ |
-| `/api/profiles/export` | GET | analyst+ |
-| `/api/auth/*` | - | varies |
+| Endpoint               | Method | Required Role |
+| ---------------------- | ------ | ------------- |
+| `/api/profiles`        | POST   | admin         |
+| `/api/profiles/:id`    | DELETE | admin         |
+| `/api/profiles`        | GET    | analyst+      |
+| `/api/profiles/search` | GET    | analyst+      |
+| `/api/profiles/export` | GET    | analyst+      |
+| `/api/auth/*`          | -      | varies        |
 
 ## API Endpoints
 
 ### Authentication
 
 #### `GET /auth/github`
+
 Redirect to GitHub OAuth authorization page.
 
 #### `GET /auth/github/callback`
+
 Handle GitHub OAuth callback, create user, issue tokens.
 
 #### `POST /auth/refresh`
+
 **Request:** `{ "refresh_token": "string" }`
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -167,9 +177,11 @@ Handle GitHub OAuth callback, create user, issue tokens.
 ```
 
 #### `POST /auth/logout`
+
 Invalidate refresh token and clear session.
 
 #### `GET /auth/me`
+
 Get current user info (protected).
 
 ### Profile Endpoints
@@ -177,14 +189,17 @@ Get current user info (protected).
 All profile endpoints require `X-API-Version: 1` header.
 
 #### `GET /api/profiles`
+
 List profiles with filtering, sorting, pagination.
 
 **Query Parameters:**
+
 - Filtering: `gender`, `country_id`, `age_group`, `min_age`, `max_age`, `min_gender_probability`, `min_country_probability`
 - Sorting: `sort_by` (age, created_at, gender_probability), `order` (asc, desc)
 - Pagination: `page`, `limit` (max 50)
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -202,14 +217,17 @@ List profiles with filtering, sorting, pagination.
 ```
 
 #### `POST /api/profiles`
+
 **Admin only.** Create new profile.
 
 **Request:**
+
 ```json
 { "name": "Harriet Tubman" }
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -218,12 +236,15 @@ List profiles with filtering, sorting, pagination.
 ```
 
 #### `GET /api/profiles/:id`
+
 Get profile by ID.
 
 #### `DELETE /api/profiles/:id`
+
 **Admin only.** Delete profile.
 
 #### `GET /api/profiles/search`
+
 Natural language search.
 
 **Query:** `q=female adults from US`
@@ -231,6 +252,7 @@ Natural language search.
 **Response:** Same format as list endpoint.
 
 #### `GET /api/profiles/export`
+
 Export profiles to CSV.
 
 **Query:** `format=csv&gender=male&country_id=NG`
@@ -239,14 +261,15 @@ Export profiles to CSV.
 
 ## Rate Limiting
 
-| Scope | Limit | Response |
-|-------|-------|----------|
-| `/auth/*` | 10 req/min per IP | 429 Too Many Requests |
-| `/api/*` | 60 req/min per user | 429 Too Many Requests |
+| Scope     | Limit               | Response              |
+| --------- | ------------------- | --------------------- |
+| `/auth/*` | 10 req/min per IP   | 429 Too Many Requests |
+| `/api/*`  | 60 req/min per user | 429 Too Many Requests |
 
 ## Logging
 
 All requests are logged with format:
+
 ```
 [2026-04-26T03:39:02Z] GET /api/profiles 200 45ms
 ```
@@ -254,6 +277,7 @@ All requests are logged with format:
 ## Error Responses
 
 Standard error format:
+
 ```json
 {
   "status": "error",
@@ -261,14 +285,14 @@ Standard error format:
 }
 ```
 
-| Status | Meaning |
-|--------|---------|
-| 400 | Bad request (missing API version header, etc.) |
-| 401 | Unauthorized (missing/invalid token) |
-| 403 | Forbidden (insufficient permissions) |
-| 422 | Validation error |
-| 429 | Rate limit exceeded |
-| 500 | Internal server error |
+| Status | Meaning                                        |
+| ------ | ---------------------------------------------- |
+| 400    | Bad request (missing API version header, etc.) |
+| 401    | Unauthorized (missing/invalid token)           |
+| 403    | Forbidden (insufficient permissions)           |
+| 422    | Validation error                               |
+| 429    | Rate limit exceeded                            |
+| 500    | Internal server error                          |
 
 ## Environment Variables
 
@@ -289,7 +313,7 @@ REFRESH_TOKEN_EXPIRES=300
 # GitHub OAuth
 GITHUB_CLIENT_ID=your_client_id_here
 GITHUB_CLIENT_SECRET=your_client_secret_here
-GITHUB_CALLBACK_URL=http://localhost:4888/auth/github/callback
+GITHUB_CALLBACK_URL=http://185.200.244.215:9400/auth/github/callback
 
 # Frontend URL
 FRONTEND_URL=http://localhost:3000
@@ -303,6 +327,7 @@ API_RATE_LIMIT=60
 ## Setup
 
 ### Prerequisites
+
 - Node.js v18+
 - PostgreSQL database
 - GitHub OAuth App (for authentication)
@@ -352,6 +377,7 @@ npm run typecheck
 ## CI/CD
 
 GitHub Actions workflow runs on PR to `main`:
+
 - Linting (ESLint)
 - Testing (Jest)
 - Build checks (TypeScript compilation)
@@ -368,6 +394,7 @@ Recommended deployment: Render, AWS, Railway, or similar platform
 ## Natural Language Parsing
 
 The system parses queries like:
+
 - `"female adults from US"` → gender=female, age_group=adult, country_id=US
 - `"males over 30"` → gender=male, min_age=30
 - `"young people"` → age between 16-24
@@ -409,4 +436,3 @@ MIT
 ## Support
 
 For issues and questions, please refer to the main project repository.
-
