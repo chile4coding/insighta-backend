@@ -1,0 +1,85 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.test
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Testing
+coverage/
+.nyc_output
+
+# Prisma
+/prisma/migrations/
+prisma/migrations/
+prisma/dev.db
+prisma/dev.db-journal
+prisma/session.db
+prisma/session.db-journal
+
+# Generated Prisma Client
+node_modules/.prisma/
+
+# Session/Token secrets
+session-secret*
+jwt-secret*
+*.pem
+*.key
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# TypeScript
+*.js
+*.js.map
+*.d.ts
+!**/*.d.ts
+tsconfig.tsbuildinfo
+
+# Cache
+.npm
+.eslintcache
+ts-node-dev/
+
+# Docker (if used)
+docker-compose.override.yml
+
+# Backup files
+*.bak
+*.backup
+*.orig
+
+# Local development
+.vercel
+.netlify

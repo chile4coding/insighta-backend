@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(uuid(7))
+  githubId       String    @unique @map("github_id") @db.VarChar(255)
+  username       String    @db.VarChar(255)
+  email          String    @db.VarChar(255)
+  avatarUrl      String?   @map("avatar_url") @db.VarChar(500)
+  role           String    @default("analyst") @db.VarChar(20)
+  isActive       Boolean   @default(true) @map("is_active")
+  lastLoginAt    DateTime? @map("last_login_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  profiles       Profile[]
+  sessions       Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(uuid(7))
+  userId       String   @map("user_id")
+  refreshToken String   @unique @map("refresh_token") @db.VarChar(500)
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+  @@index([userId])
+}
+
+// Table for express-session storage (matches connect-pg-simple default schema)
+// Columns: sid (VARCHAR primary key), sess (JSON), expire (TIMESTAMP)
+model WebSession {
+  sid    String   @id @map("sid") @db.VarChar(128)
+  sess   String   @map("sess") @db.Text
+  expire DateTime @map("expire")
+
+  @@map("session")
+  @@index([expire])
+}
+
+model Profile {
+  id                 String   @id @default(uuid(7))
+  name               String   @unique @db.VarChar(255)
+  gender             String?  @db.VarChar(10)
+  genderProbability  Float?   @map("gender_probability")
+  age                Int?
+  ageGroup           String?  @map("age_group") @db.VarChar(20)
+  countryId          String?  @map("country_id") @db.VarChar(2)
+  countryName        String?  @map("country_name") @db.VarChar(100)
+  countryProbability Float?   @map("country_probability")
+  createdAt          DateTime @map("created_at") @default(now())
+  userId             String?  @map("user_id")
+  user               User?    @relation(fields: [userId], references: [id])
+
+  @@index([gender])
+  @@index([countryId])
+  @@index([ageGroup])
+  @@index([age])
+  @@index([genderProbability])
+  @@index([countryProbability])
+  @@index([createdAt])
+  @@index([userId])
+  @@map("profiles")
+}

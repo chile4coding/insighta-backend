@@ -1,0 +1,131 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: insighta_labs
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Run database migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Create target directory on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            mkdir -p ${{ secrets.SERVER_PATH }}
+
+      - name: Copy files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          source: "dist,package.json,package-lock.json,prisma,.env.example"
+          target: ${{ secrets.SERVER_PATH }}
+          overwrite: true
+
+      - name: Create .env file on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            cd ${{ secrets.SERVER_PATH }}
+            cat > .env << EOF
+DATABASE_URL=${{ secrets.DATABASE_URL }}
+PORT=${{ secrets.PORT }}
+JWT_SECRET=${{ secrets.JWT_SECRET }}
+ACCESS_TOKEN_EXPIRES=${{ secrets.ACCESS_TOKEN_EXPIRES }}
+REFRESH_TOKEN_EXPIRES=${{ secrets.REFRESH_TOKEN_EXPIRES }}
+GITHUB_CLIENT_ID=${{ secrets.GITHUB_CLIENT_ID }}
+GITHUB_CLIENT_SECRET=${{ secrets.GITHUB_CLIENT_SECRET }}
+GITHUB_CALLBACK_URL=${{ secrets.GITHUB_CALLBACK_URL }}
+FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+RATE_LIMIT_WINDOW=${{ secrets.RATE_LIMIT_WINDOW }}
+AUTH_RATE_LIMIT=${{ secrets.AUTH_RATE_LIMIT }}
+API_RATE_LIMIT=${{ secrets.API_RATE_LIMIT }}
+SESSION_SECRET=${{ secrets.SESSION_SECRET }}
+NODE_ENV=production
+EOF
+
+      - name: Install dependencies on server
+        timeout-minutes: 10
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          timeout: 600s
+          script: |
+            cd ${{ secrets.SERVER_PATH }}
+            npm install --only=production
+            npx prisma generate
+            npx prisma migrate deploy
+
+      - name: Restart app on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            cd ${{ secrets.SERVER_PATH }}
+            pm2 delete insighta-backend 2>/dev/null || true
+            pm2 start dist/server.js --name insighta-backend
+            pm2 save
+
+      - name: Verify deployment
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            sleep 10
+            curl -f http://127.0.0.1:${{ secrets.PORT }}/health || exit 1
