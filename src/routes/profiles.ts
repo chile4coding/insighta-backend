@@ -7,14 +7,11 @@ import {
   searchProfiles,
   exportProfiles,
 } from "../controllers/profileController";
-import { authenticateSession } from "../middleware/auth";
 import { requireApiVersion } from "../middleware/version";
 import { requireAdmin, requireAnalystOrAdmin } from "../middleware/rbac";
 
 const router = Router();
 
-// All profile routes require authentication
-router.use(authenticateSession);
 router.use(requireAnalystOrAdmin);
 
 // All profile routes require API version header (except in middleware chain after auth)
