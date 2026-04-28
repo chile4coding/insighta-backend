@@ -88,7 +88,6 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
             mkdir -p ${{ secrets.SERVER_PATH }}
-
       - name: Copy files to server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -121,7 +120,6 @@ jobs:
             echo "API_RATE_LIMIT=${{ secrets.API_RATE_LIMIT }}" >> .env
             echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
             echo "NODE_ENV=production" >> .env
-
       - name: Install dependencies and migrate on server
         timeout-minutes: 10
         uses: appleboy/ssh-action@v1.0.3
@@ -135,7 +133,6 @@ jobs:
             npm ci
             npx prisma generate
             npx prisma migrate deploy
-
       - name: Restart app on server
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -147,7 +144,6 @@ jobs:
             pm2 delete insighta-backend 2>/dev/null || true
             pm2 start dist/server.js --name insighta-backend
             pm2 save
-
       - name: Verify deployment
         uses: appleboy/ssh-action@v1.0.3
         with:
