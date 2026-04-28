@@ -1,9 +1,11 @@
 import express, { Request, Response, NextFunction } from "express";
 import profileRoutes from "./routes/profiles";
+import userRoutes from "./routes/user";
+
 import authRoutes from "./routes/auth";
 import dashboardRoutes from "./routes/dashboard";
 import { requestLogger } from "./middleware/logger";
-import { apiLimiter } from "./middleware/rateLimit";
+import { apiLimiter, authLimiter } from "./middleware/rateLimit";
 import cookieParser from "cookie-parser";
 import session from "express-session";
 import createPgStore from "connect-pg-simple";
@@ -11,6 +13,7 @@ import { Pool } from "pg";
 import "dotenv/config";
 // Import to register session type augmentation
 import "./types/session";
+import { authenticateSession } from "./middleware/auth";
 
 const app = express();
 
@@ -66,16 +69,17 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // Request logging
 app.use(requestLogger);
 
+app.use("auth", authLimiter, authRoutes);
 // Rate limiting for all routes
-app.use("/api", apiLimiter);
-
 // Routes
 app.get("/health", (req: Request, res: Response) => {
   res.json({ status: "ok" });
 });
-
-app.use("/api/auth", authRoutes);
+app.use(apiLimiter);
+// All profile routes require authentication
+app.use(authenticateSession);
 app.use("/api", profileRoutes);
 app.use("/api", dashboardRoutes);
+app.use("/api/user", userRoutes);
 
 export default app;
