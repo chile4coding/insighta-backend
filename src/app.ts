@@ -69,7 +69,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // Request logging
 app.use(requestLogger);
 
-app.use("auth", authLimiter, authRoutes);
+app.use("/auth", authLimiter, authRoutes);
 // Rate limiting for all routes
 // Routes
 app.get("/health", (req: Request, res: Response) => {
@@ -77,9 +77,10 @@ app.get("/health", (req: Request, res: Response) => {
 });
 app.use(apiLimiter);
 // All profile routes require authentication
+app.use(authenticateSession);
+app.use("/api/users", userRoutes);
 
-app.use("/api", authenticateSession, profileRoutes);
-app.use("/api", authenticateSession, dashboardRoutes);
-app.use("/api/user", authenticateSession  , userRoutes);
+app.use("/api", profileRoutes);
+app.use("/api", dashboardRoutes);
 
 export default app;
