@@ -9,6 +9,7 @@ import {
 } from "../controllers/profileController";
 import { requireApiVersion } from "../middleware/version";
 import { requireAdmin, requireAnalystOrAdmin } from "../middleware/rbac";
+import { authenticateSession } from "../middleware/auth";
 
 const router = Router();
 
