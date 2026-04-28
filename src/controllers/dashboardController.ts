@@ -25,11 +25,11 @@ export async function getDashboardStats(req: Request, res: Response) {
     });
 
     const totalMale =
-      genderStats.find((g: GenderStat) => g.gender?.toLowerCase() === "male")?._count
-        .gender || 0;
+      genderStats.find((g: GenderStat) => g.gender?.toLowerCase() === "male")
+        ?._count.gender || 0;
     const totalFemale =
-      genderStats.find((g: GenderStat) => g.gender?.toLowerCase() === "female")?._count
-        .gender || 0;
+      genderStats.find((g: GenderStat) => g.gender?.toLowerCase() === "female")
+        ?._count.gender || 0;
 
     // Total profiles by age group
     const ageGroupStats = await prisma.profile.groupBy({
@@ -39,25 +39,22 @@ export async function getDashboardStats(req: Request, res: Response) {
     });
 
     const totalChildren =
-      ageGroupStats.find((a: AgeGroupStat) => a.ageGroup?.toLowerCase() === "child")?._count
-        .ageGroup || 0;
+      ageGroupStats.find(
+        (a: AgeGroupStat) => a.ageGroup?.toLowerCase() === "child",
+      )?._count.ageGroup || 0;
 
     // Most recent profiles created in the last 7 days
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const recentProfiles = await prisma.profile.findMany({
+    const recentProfiles = await prisma.profile.count({
       where: {
         createdAt: { gte: sevenDaysAgo },
       },
       orderBy: {
         createdAt: "desc",
       },
-      take: 10,
     });
-
-    // Convert to snake_case format (consistent with other endpoints)
-    const recentProfilesFormatted = recentProfiles.map(toSnakeList);
 
     return res.status(200).json({
       status: "success",
@@ -66,7 +63,7 @@ export async function getDashboardStats(req: Request, res: Response) {
         totalMale,
         totalFemale,
         totalChildren,
-        recentProfiles: recentProfilesFormatted,
+        recentProfiles: recentProfiles,
       },
     });
   } catch (err) {
