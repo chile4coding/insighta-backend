@@ -1,14 +1,80 @@
-name: Deploy to Server
+name: CI & Deploy
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
+  # ============================================
+  # CI Jobs - Run on every PR and push to main
+  # ============================================
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/insighta_test?schema=public
+      - run: npm run lint
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/insighta_test?schema=public
+      - run: npm run typecheck
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/insighta_test?schema=public
+      - run: npm run build
+
+  # ============================================
+  # Deploy Job - Only runs on push to main (not PRs)
+  # after CI jobs pass
+  # ============================================
   deploy:
     runs-on: ubuntu-latest
     needs: [lint, typecheck, build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: insighta_labs
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout code
@@ -25,6 +91,11 @@ jobs:
 
       - name: Generate Prisma Client
         run: npx prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Run database migrations
+        run: npx prisma migrate deploy
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
@@ -63,9 +134,9 @@ jobs:
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
             echo "ACCESS_TOKEN_EXPIRES=${{ secrets.ACCESS_TOKEN_EXPIRES }}" >> .env
             echo "REFRESH_TOKEN_EXPIRES=${{ secrets.REFRESH_TOKEN_EXPIRES }}" >> .env
-            echo "CLIENT_ID=${{ secrets.CLIENT_ID }}" >> .env
-            echo "CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}" >> .env
-            echo "CALLBACK_URL=${{ secrets.CALLBACK_URL }}" >> .env
+            echo "GITHUB_CLIENT_ID=${{ secrets.GITHUB_CLIENT_ID }}" >> .env
+            echo "GITHUB_CLIENT_SECRET=${{ secrets.GITHUB_CLIENT_SECRET }}" >> .env
+            echo "GITHUB_CALLBACK_URL=${{ secrets.GITHUB_CALLBACK_URL }}" >> .env
             echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> .env
             echo "RATE_LIMIT_WINDOW=${{ secrets.RATE_LIMIT_WINDOW }}" >> .env
             echo "AUTH_RATE_LIMIT=${{ secrets.AUTH_RATE_LIMIT }}" >> .env
