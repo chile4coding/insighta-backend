@@ -14,17 +14,24 @@ import { apiLimiter } from "../middleware/rateLimit";
 import { authenticate } from "../middleware/auth";
 import multer from "multer";
 import path from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
+
+import fs from "fs";
 
 const router = Router();
 
+const uploadsDir = path.resolve(__dirname, "../../uploads");
+
+// Ensure uploads directory exists at startup
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 // Configure multer for file uploads with disk storage
-const upload = multer({
+export const upload = multer({
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
-  fileFilter: (req, file, cb) => {
+  fileFilter: (_req, file, cb) => {
     if (file.mimetype === "text/csv" || file.mimetype === "application/csv") {
       cb(null, true);
     } else {
@@ -32,16 +39,18 @@ const upload = multer({
     }
   },
   storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, "uploads/");
+    destination: (_req, _file, cb) => {
+      cb(null, uploadsDir);
     },
-    filename: (req, file, cb) => {
+    filename: (_req, file, cb) => {
       const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
-    }
-  })
+      cb(
+        null,
+        file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname),
+      );
+    },
+  }),
 });
-
 // All profile routes require API version header (except in middleware chain after auth)
 
 router.post(
