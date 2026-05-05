@@ -55,46 +55,46 @@ export const upload = multer({
 
 router.post(
   "/profiles",
-  // apiLimiter,
-  // requireApiVersion,
-  // authenticate,
-  // authorizeRole("admin"),
+  apiLimiter,
+  requireApiVersion,
+  authenticate,
+  authorizeRole("admin"),
   createProfile,
 );
 
 // CSV upload endpoint
 router.post(
   "/profiles/upload",
-  // apiLimiter,
-  // requireApiVersion,
-  // authenticate,
-  // authorizeRole("admin"),
+  apiLimiter,
+  requireApiVersion,
+  authenticate,
+  authorizeRole("admin"),
   upload.single("file"),
   uploadProfilesCsv,
 );
 
 router.get(
   "/profiles",
-  // apiLimiter,
-  // requireApiVersion,
-  // authenticate,
-  // authorizeRole("admin", "analyst"),
+  apiLimiter,
+  requireApiVersion,
+  authenticate,
+  authorizeRole("admin", "analyst"),
   getProfiles,
 );
 router.get(
   "/profiles/search",
-  // apiLimiter,
-  // requireApiVersion,
-  // authenticate,
-  // authorizeRole("admin", "analyst"),
+  apiLimiter,
+  requireApiVersion,
+  authenticate,
+  authorizeRole("admin", "analyst"),
   searchProfiles,
 );
 router.get(
   "/profiles/export",
-  // apiLimiter,
-  // requireApiVersion,
-  // authenticate,
-  // authorizeRole("admin", "analyst"),
+  apiLimiter,
+  requireApiVersion,
+  authenticate,
+  authorizeRole("admin", "analyst"),
   exportProfiles,
 ); // Must come BEFORE /profiles/:id
 router.get(
