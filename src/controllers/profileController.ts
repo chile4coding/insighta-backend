@@ -268,7 +268,7 @@ function parseQueryParams(query: Record<string, unknown>): ValidationResult {
     if (isNaN(limit) || limit < 1 || !Number.isInteger(limit)) {
       return { error: { status: 422, message: "Invalid query parameters" } };
     }
-    params.limit = Math.min(limit, 50);
+    params.limit = limit ? limit : 50;
   } else {
     params.limit = 10;
   }
