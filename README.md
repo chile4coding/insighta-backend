@@ -230,3 +230,4 @@ Seeded users use a deterministic `githubId = "seed-{username}"` since `githubId`
 | `src/seed_profiles.json` | Profile data (no usernames — derived) |
 | `prisma/schema.prisma` | `User.username` marked `@unique` |
 # profile
+# profile
